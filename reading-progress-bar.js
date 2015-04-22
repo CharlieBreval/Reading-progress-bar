@@ -25,7 +25,7 @@ $.fn.readingProgressBar = function(options) {
     var sideWidth    = ( options.viewportWidth - navWidth ) / 2;
     var initialPosition = ( options.bgImgWidth - sideWidth ) - ( navItemWidth / 2 );
 
-    container.css('background-position-x', '-' + initialPosition +'px');
+    progressTo(navItems.first());
 
     navItems.each(function(idx, val) {
         var target = $(this).children('a').attr('href');
@@ -41,8 +41,7 @@ $.fn.readingProgressBar = function(options) {
                     handler: function(direction) {
                         if (trackScroll == true) {
                             var navItem = navItems.find('a[href="#'+this.element.id+'"]').parent();
-                            currentBgPosition = '-' + (initialPosition - navItem.index() * navItemWidth);
-                            container.css('background-position-x', currentBgPosition +'px');
+                            progressTo(navItem);
                             navItem.toggleClass('active');
                         }
 
@@ -58,6 +57,10 @@ $.fn.readingProgressBar = function(options) {
     var lastScrollTop = 0;
     $(window).scroll(function(event){
         var st        = $(this).scrollTop();
+        if (st == 0) {
+            progressTo(navItems.first());
+            return;
+        }
         ratio         = (st - lastScrollTop) * scrollRatio;
         lastScrollTop = st;
 
@@ -76,8 +79,7 @@ $.fn.readingProgressBar = function(options) {
             var section = $($(this).attr('href'));
             var navItem = $(this).parent();
 
-            currentBgPosition = '-' + (initialPosition - (navItem.index() * navItemWidth));
-            $(container).css('background-position-x', currentBgPosition +'px');
+            progressTo(navItem);
 
             $('html, body').animate( { scrollTop: section.offset().top }, 300, function(){
                 trackScroll = true;
@@ -85,4 +87,9 @@ $.fn.readingProgressBar = function(options) {
             waypoints[idx].enable();
         })
     });
+
+    function progressTo(navItem) {
+        currentBgPosition = '-' + (initialPosition - (navItem.index() * navItemWidth));
+        container.css('background-position-x', currentBgPosition +'px');
+    }
 };
