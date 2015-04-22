@@ -1,0 +1,15 @@
+.readingProgress{
+    @readingProgressItems: 6;
+    height: 34px;
+    padding-bottom: 0;
+    background-image: url('/bundles/panagetsite/libs/readingProgressBar/img/img-bar-bookmark-angled.png');
+    background-color:  #1d1d1d;
+    background-repeat: no-repeat;
+    .item{
+        float: left;
+        line-height: 34px;
+        text-align: center;
+        width: percentage(1 / @readingProgressItems);
+        a{ color: #fff;}
+    }
+}
