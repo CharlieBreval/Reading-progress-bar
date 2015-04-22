@@ -9,15 +9,17 @@ $.fn.readingProgressBar = function(options) {
     container = $(this);
 
     var options            = $.extend(defaults, options);
-    var nav                = container.find('.bar')
+    var nav                = container.find('nav')
     var currentBgPosition  = 0;
     var itemCollection     = [];
+    var waypoints     = [];
     var navItems           = nav.children();
     var currentId          = null;
     var scrollRatio        = options.scrollRatio;
+    var trackScroll        = true;
 
 
-    // INITIALIZATION
+    // INITIALIZATION OF THE PLUGIN
     var navItemWidth = navItems.first().width();
     var navWidth     = nav.width();
     var sideWidth    = ( options.viewportWidth - navWidth ) / 2;
@@ -30,39 +32,57 @@ $.fn.readingProgressBar = function(options) {
         if ($(target).length > 0) {
 
             itemCollection[target] = $(target).height();
-            new Waypoint({
-                element: document.getElementById(target.replace('#', '')),
-                handler: function(direction) {
-                    var navItem = navItems.find('a[href="#'+this.element.id+'"]').parent();
-                    currentBgPosition = '-' + (initialPosition - navItem.index() * navItemWidth);
-                    container.css('background-position-x', currentBgPosition +'px');
-                    navItem.toggleClass('active');
+            if (!window.Waypoint) {
+                window.alert('The readingProgressBar Plugin need the Waypoint library, you can download to : http://imakewebthings.com/waypoints/');
+            } else {
 
-                },
-                offset: "30%",
-            })
+            waypoints.push(new Waypoint({
+                    element: document.getElementById(target.replace('#', '')),
+                    handler: function(direction) {
+                        if (trackScroll == true) {
+                            var navItem = navItems.find('a[href="#'+this.element.id+'"]').parent();
+                            currentBgPosition = '-' + (initialPosition - navItem.index() * navItemWidth);
+                            container.css('background-position-x', currentBgPosition +'px');
+                            navItem.toggleClass('active');
+                        }
+
+                    },
+                    offset: "30%",
+                }));
+            }
         }
     })
 
-    // SCROLL EVENT
+
+    // SCROLL EVENT ON WINDOW
     var lastScrollTop = 0;
     $(window).scroll(function(event){
-        var st = $(this).scrollTop();
-        ratio = (st - lastScrollTop) * scrollRatio;
-
-        currentBgPosition = parseInt(container.css('background-position-x').replace('px', '')) + ratio;
-        container.css('background-position-x', currentBgPosition +'px');
+        var st        = $(this).scrollTop();
+        ratio         = (st - lastScrollTop) * scrollRatio;
         lastScrollTop = st;
-    });
 
-    // CLIC ON A NAV LINK
-    $('.bar a').smoothScroll({
-        offset: -150,
-        afterScroll: function() {
-            // Apres le scroll, on vient correctement positionner notre curseur
-            var navItem = $(this).parent();
-            currentBgPosition = '-' + (initialPosition - (navItem.index() * navItemWidth));
+        if (trackScroll == true) {
+            currentBgPosition = parseInt(container.css('background-position-x').replace('px', '')) + ratio;
             container.css('background-position-x', currentBgPosition +'px');
         }
+    });
+
+    // BINDING CLICK EVENT ON LINKS
+    navItems.each(function(idx, val) {
+        $(val).children('a').on('click', function(e) {
+            trackScroll = false;
+            waypoints[idx].disable();
+
+            var section = $($(this).attr('href'));
+            var navItem = $(this).parent();
+
+            currentBgPosition = '-' + (initialPosition - (navItem.index() * navItemWidth));
+            $(container).css('background-position-x', currentBgPosition +'px');
+
+            $('html, body').animate( { scrollTop: section.offset().top }, 300, function(){
+                trackScroll = true;
+            });
+            waypoints[idx].enable();
+        })
     });
 };
